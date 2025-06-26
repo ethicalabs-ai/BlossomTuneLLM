@@ -2,9 +2,9 @@ services:
   blossomtune-server-node:
     build: .
     environment:
-      NODE_DATA_PATH: "/app/data/"
+      NODE_SAVE_PATH: "/app/results/"
     volumes:
-      - ./data:/app/data
+      - ./results:/app/results
   blossomtune-client-node:
     build: .
     environment:

@@ -61,8 +61,8 @@ def server_fn(context: Context):
     """Construct components that set the ServerApp behaviour."""
     # Create output directory given current timestamp
     current_time = datetime.now()
-    folder_name = current_time.strftime("%Y-%m-%d_%H-%M-%S")
-    save_path = os.path.join(os.getcwd(), f"results/{folder_name}")
+    current_time_str = current_time.strftime("%Y-%m-%d_%H-%M-%S")
+    save_path = os.path.join(context.run_config["save-path"], current_time_str)
     os.makedirs(save_path, exist_ok=True)
 
     # Read from config

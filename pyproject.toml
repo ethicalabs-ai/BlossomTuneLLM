@@ -17,7 +17,7 @@ dependencies = [
     "hf_transfer==0.1.9",
     "torch-adopt==0.1.0",
 ]
-requires-python = ">=3.11.13"
+requires-python = ">=3.11.12"
 
 [tool.flwr.app]
 publisher = "mrs83"

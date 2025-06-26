@@ -1,0 +1,75 @@
+[project]
+name = "blossomtune"
+version = "1.0.0"
+description = "FlowerTune LLM Labs"
+license = "Apache-2.0"
+dependencies = [
+    "flwr[simulation]>=1.19.0",
+    "flwr-datasets>=0.5.0",
+    "torch==2.7.0",
+    "trl==0.19.0",
+    "bitsandbytes==0.46.0",
+    "scipy==1.16.0",
+    "peft==0.15.2",
+    "transformers==4.53.0",
+    "sentencepiece==0.2.0",
+    "omegaconf==2.3.0",
+    "hf_transfer==0.1.9",
+    "torch-adopt==0.1.0",
+]
+requires-python = ">=3.11.11"
+
+[tool.flwr.app]
+publisher = "mrs83"
+
+[tool.flwr.app.components]
+serverapp = "blossomtune.server_app:app"
+clientapp = "blossomtune.client_app:app"
+
+[tool.flwr.app.config]
+model.name = ""
+model.quantization = 4
+model.gradient-checkpointing = true
+model.lora.peft-lora-r = 4
+model.lora.peft-lora-alpha = 4
+model.lora.peft-use-dora = true
+model.use-adopt = true
+train.save-every-round = 5
+train.learning-rate-max = 5e-5
+train.learning-rate-min = 5e-6
+train.seq-length = 512
+train.training-arguments.output-dir = ""
+train.training-arguments.learning-rate = ""
+train.training-arguments.per-device-train-batch-size = 4
+train.training-arguments.gradient-accumulation-steps = 1
+train.training-arguments.logging-steps = 1
+train.training-arguments.num-train-epochs = 3
+train.training-arguments.max-steps = 8
+train.training-arguments.save-steps = 1000
+train.training-arguments.save-total-limit = 10
+train.training-arguments.max-grad-norm = 1.0
+train.training-arguments.gradient-checkpointing = true
+train.training-arguments.bf16 = true
+train.training-arguments.tf32 = true
+train.training-arguments.optim = "adamw_torch"
+train.training-arguments.eos_token = "<|im_end|>"
+train.training-arguments.lr-scheduler-type = "constant"
+strategy.fraction-fit = 0.4
+strategy.fraction-evaluate = 0.0
+num-server-rounds = 20
+use-flexlora = false
+
+[tool.flwr.app.config.static]
+dataset.name = ""
+
+[tool.flwr.federations]
+default = "local-simulation"
+
+[tool.flwr.federations.local-deployment]
+address = "127.0.0.1:9093"
+insecure = true
+
+[tool.flwr.federations.local-simulation]
+options.num-supernodes = 10
+options.backend.client-resources.num-cpus = 4
+options.backend.client-resources.num-gpus = 1.0

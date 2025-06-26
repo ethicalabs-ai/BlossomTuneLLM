@@ -1,0 +1,14 @@
+services:
+  blossomtune-server-node:
+    build: .
+    environment:
+      NODE_DATA_PATH: "/app/data/"
+    volumes:
+      - ./data:/app/data
+  blossomtune-client-node:
+    build: .
+    environment:
+      SUPERLINK: "blossomtune-server-node:443"
+      NODE_DATA_PATH: "/app/data/"
+    volumes:
+      - ./data:/app/data

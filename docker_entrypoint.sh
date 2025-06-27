@@ -6,8 +6,7 @@ echo "Env vars:"
 env | grep -v -E "SECRET|KEY"
 
 if [ "${1}" = "superlink" ]; then
-    echo "Running database migrations..."
-    echo "Running supernode..."
+    echo "Running superlink..."
     uv run flower-superlink --insecure
 elif [ "${1}" = "supernode" ]; then
     echo "Running supernode..."

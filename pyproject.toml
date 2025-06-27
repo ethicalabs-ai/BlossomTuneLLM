@@ -27,7 +27,7 @@ serverapp = "blossomtune.server_app:app"
 clientapp = "blossomtune.client_app:app"
 
 [tool.flwr.app.config]
-model.name = ""
+model.name = "HuggingFaceTB/SmolLM2-135M"
 model.quantization = 4
 model.gradient-checkpointing = true
 model.lora.peft-lora-r = 4
@@ -59,15 +59,16 @@ strategy.fraction-evaluate = 0.0
 num-server-rounds = 20
 use-flexlora = false
 data-path = "/app/data"
+save-path = "/app/results"
 
 [tool.flwr.app.config.static]
 dataset.name = ""
 
 [tool.flwr.federations]
-default = "local-simulation"
+default = "local-deployment"
 
 [tool.flwr.federations.local-deployment]
-address = "127.0.0.1:9093"
+address = "0.0.0.0:9093"
 insecure = true
 
 [tool.flwr.federations.local-simulation]

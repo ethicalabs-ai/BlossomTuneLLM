@@ -5,10 +5,24 @@ services:
       NODE_SAVE_PATH: "/app/results/"
     volumes:
       - ./results:/app/results
-  blossomtune-client-node:
+    command: ["superlink"]
+  blossomtune-client-node-01:
     build: .
     environment:
       SUPERLINK: "blossomtune-server-node:443"
       NODE_DATA_PATH: "/app/data/"
+      PARTITION_ID: 0
+      NUM_PARTITIONS: 10
     volumes:
       - ./data:/app/data
+    command: ["supernode"]
+  blossomtune-client-node-02:
+    build: .
+    environment:
+      SUPERLINK: "blossomtune-server-node:443"
+      NODE_DATA_PATH: "/app/data/"
+      PARTITION_ID: 1
+      NUM_PARTITIONS: 10
+    volumes:
+      - ./data:/app/data
+    command: ["supernode"]

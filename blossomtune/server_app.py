@@ -2,6 +2,7 @@
 
 import os
 from datetime import datetime
+from slugify import slugify
 
 from flwr.common import Context, ndarrays_to_parameters
 from flwr.common.config import unflatten_dict
@@ -62,7 +63,8 @@ def server_fn(context: Context):
     # Create output directory given current timestamp
     current_time = datetime.now()
     current_time_str = current_time.strftime("%Y-%m-%d_%H-%M-%S")
-    save_path = os.path.join(context.run_config["save-path"], current_time_str)
+    model_slug = slugify(context.run_config["model.name"])
+    save_path = os.path.join(context.run_config["save-path"], model_slug, current_time_str)
     os.makedirs(save_path, exist_ok=True)
 
     # Read from config

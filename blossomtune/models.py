@@ -38,7 +38,7 @@ def get_model(model_cfg: DictConfig):
         quantization_config = None
     else:
         raise ValueError(
-            f"Use 4-bit or 8-bit quantization. You passed: {model_cfg.quantization}/"
+            f"Use 4-bit or 8-bit quantization, or 0 to disable quantization. You passed: {model_cfg.quantization}"
         )
 
     model = AutoModelForCausalLM.from_pretrained(
@@ -57,15 +57,7 @@ def get_model(model_cfg: DictConfig):
         lora_alpha=model_cfg.lora.peft_lora_alpha,
         lora_dropout=0.075,
         task_type="CAUSAL_LM",
-        target_modules=[
-            "q_proj",
-            "k_proj",
-            "v_proj",
-            "o_proj",
-            "gate_proj",
-            "down_proj",
-            "up_proj",
-        ],
+        target_modules=model_cfg.lora.peft_target_modules,
         use_dora=model_cfg.lora.peft_use_dora,
     )
 

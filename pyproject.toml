@@ -33,6 +33,7 @@ model.gradient-checkpointing = true
 model.lora.peft-lora-r = 4
 model.lora.peft-lora-alpha = 4
 model.lora.peft-use-dora = true
+model.lora.peft-target-modules = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "down_proj", "up_proj"]
 model.use-adopt = true
 train.save-every-round = 5
 train.learning-rate-max = 5e-5
@@ -54,7 +55,7 @@ train.training-arguments.tf32 = true
 train.training-arguments.optim = "adamw_torch"
 train.training-arguments.eos_token = "<|im_end|>"
 train.training-arguments.lr-scheduler-type = "constant"
-strategy.fraction-fit = 0.4
+strategy.fraction-fit = 1.0
 strategy.fraction-evaluate = 0.0
 num-server-rounds = 20
 use-flexlora = false
@@ -62,7 +63,9 @@ data-path = "/app/data"
 save-path = "/app/results"
 
 [tool.flwr.app.config.static]
-dataset.name = ""
+dataset.name = "flwrlabs/alpaca-gpt4"
+dataset.prompt_value = "{instruction} {input}"
+dataset.completion_value = "{output}"
 
 [tool.flwr.federations]
 default = "local-deployment"

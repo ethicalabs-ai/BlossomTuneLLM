@@ -18,4 +18,5 @@ ADD . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked
 
-ENTRYPOINT ["/app/docker_entrypoint.sh", "superlink"]
+ENTRYPOINT ["/app/docker_entrypoint.sh"]
+CMD ["superlink"]

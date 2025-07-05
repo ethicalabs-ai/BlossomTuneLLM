@@ -1,11 +1,15 @@
 services:
   blossomtune-server-node:
     build: .
+    image: docker.io/ethicalabs/blossomtune-llm:latest
+    container_name: superlink
     volumes:
       - ./results:/app/results
     command: ["superlink"]
   blossomtune-client-node-01:
     build: .
+    image: docker.io/ethicalabs/blossomtune-llm:latest
+    container_name: supernode-01
     environment:
       SUPERLINK: "blossomtune-server-node:9092"
       NODE_DATA_PATH: "/app/data/"
@@ -16,6 +20,8 @@ services:
     command: ["supernode"]
   blossomtune-client-node-02:
     build: .
+    image: docker.io/ethicalabs/blossomtune-llm:latest
+    container_name: supernode-02
     environment:
       SUPERLINK: "blossomtune-server-node:9092"
       NODE_DATA_PATH: "/app/data/"
@@ -26,6 +32,8 @@ services:
     command: ["supernode"]
   blossomtune-client-node-03:
     build: .
+    image: docker.io/ethicalabs/blossomtune-llm:latest
+    container_name: supernode-03
     environment:
       SUPERLINK: "blossomtune-server-node:9092"
       NODE_DATA_PATH: "/app/data/"
@@ -36,6 +44,8 @@ services:
     command: ["supernode"]
   blossomtune-client-node-04:
     build: .
+    image: docker.io/ethicalabs/blossomtune-llm:latest
+    container_name: supernode-04
     environment:
       SUPERLINK: "blossomtune-server-node:9092"
       NODE_DATA_PATH: "/app/data/"

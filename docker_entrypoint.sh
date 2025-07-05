@@ -10,7 +10,7 @@ if [ "${1}" = "superlink" ]; then
     uv run flower-superlink --insecure
 elif [ "${1}" = "supernode" ]; then
     echo "Running supernode..."
-    uv run flower-supernode --superlink="${SUPERLINK}" --node-config="data-path='${NODE_DATA_PATH}' partition-id=${PARTITION_ID} num-partitions=${NUM_PARTITIONS}"
+    uv run flower-supernode --insecure --superlink="${SUPERLINK}" --node-config="data-path='${NODE_DATA_PATH}' partition-id=${PARTITION_ID} num-partitions=${NUM_PARTITIONS}"
 else
     exec "$@"
 fi

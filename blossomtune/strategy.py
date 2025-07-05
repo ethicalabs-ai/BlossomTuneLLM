@@ -7,7 +7,15 @@ from io import BytesIO
 from logging import INFO, WARN
 from typing import List, Tuple, Union, Optional, Dict
 
-from flwr.common import FitIns, FitRes, Parameters, log, parameters_to_ndarrays, Scalar, ndarrays_to_parameters
+from flwr.common import (
+    FitIns,
+    FitRes,
+    Parameters,
+    log,
+    parameters_to_ndarrays,
+    Scalar,
+    ndarrays_to_parameters,
+)
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.strategy import FedAvg
@@ -70,7 +78,7 @@ class FlowerTuneLlmFlexLoRA(FedAvg):
         self.comm_tracker = CommunicationTracker()
 
     def configure_fit(
-            self, server_round: int, parameters: Parameters, client_manager: ClientManager
+        self, server_round: int, parameters: Parameters, client_manager: ClientManager
     ):
         """Configure the next round of training."""
         return_clients = super().configure_fit(server_round, parameters, client_manager)
@@ -82,7 +90,7 @@ class FlowerTuneLlmFlexLoRA(FedAvg):
         return return_clients
 
     def distribute_weight_fast(self, svd_weights, max_rank):
-        u, s, v = torch.svd(torch.tensor(svd_weights, device='cuda'))
+        u, s, v = torch.svd(torch.tensor(svd_weights, device="cuda"))
         U = u[:, :max_rank]
         S = s[:max_rank]
         V = v.T[:max_rank, :]
@@ -93,10 +101,10 @@ class FlowerTuneLlmFlexLoRA(FedAvg):
         return lora_A, (lora_B / merge_rate)
 
     def aggregate_fit(
-            self,
-            server_round: int,
-            results: List[Tuple[ClientProxy, FitRes]],
-            failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
+        self,
+        server_round: int,
+        results: List[Tuple[ClientProxy, FitRes]],
+        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
     ) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
         """Aggregate fit results using weighted average."""
         # Test communication costs
@@ -104,7 +112,7 @@ class FlowerTuneLlmFlexLoRA(FedAvg):
         self.comm_tracker.track(fit_res_list)
 
         # FlexLoRA
-        print('use FlexLoRA for Aggregation')
+        print("use FlexLoRA for Aggregation")
         fit_res_params = []
         for _, fit_res in results:
             LoRA_A_list = []
@@ -128,12 +136,21 @@ class FlowerTuneLlmFlexLoRA(FedAvg):
             mul_params = []
             if len(bis_list) == 0:
                 for A_weights, B_weights in zip(LoRA_A_list, LoRA_B_list):
-                    W = torch.matmul(torch.tensor(B_weights, device='cuda'), torch.tensor(A_weights, device='cuda'))
+                    W = torch.matmul(
+                        torch.tensor(B_weights, device="cuda"),
+                        torch.tensor(A_weights, device="cuda"),
+                    )
                     mul_params.append(W.detach().cpu().numpy())
                 fit_res_params.append(mul_params)
             else:
-                for A_weights, B_weights, bis in zip(LoRA_A_list, LoRA_B_list, bis_list):
-                    mul_params.append(torch.matmul(torch.Tensor(B_weights), torch.Tensor(A_weights)).numpy())
+                for A_weights, B_weights, bis in zip(
+                    LoRA_A_list, LoRA_B_list, bis_list
+                ):
+                    mul_params.append(
+                        torch.matmul(
+                            torch.Tensor(B_weights), torch.Tensor(A_weights)
+                        ).numpy()
+                    )
                     mul_params.append(bis)
                 fit_res_params.append(mul_params)
 
@@ -144,7 +161,7 @@ class FlowerTuneLlmFlexLoRA(FedAvg):
         weights_results_ = aggregate(weights_results)
 
         new_LoRA_weights = []
-        print('Check weight result lenth')
+        print("Check weight result lenth")
         print(len(weights_results_))
         for agg_w in tqdm(weights_results_):
             if len(agg_w.shape) == 2:
@@ -154,7 +171,7 @@ class FlowerTuneLlmFlexLoRA(FedAvg):
             elif len(agg_w.shape) == 1:
                 new_LoRA_weights.append(agg_w)
             else:
-                raise Exception('something wrong')
+                raise Exception("something wrong")
 
         # parameters_aggregated = ndarrays_to_parameters(weights_results_)
         parameters_aggregated = ndarrays_to_parameters(new_LoRA_weights)

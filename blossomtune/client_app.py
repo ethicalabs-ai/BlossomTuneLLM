@@ -43,7 +43,7 @@ class FlowerClient(NumPyClient):
         model_cfg: DictConfig,
         train_cfg: DictConfig,
         trainset,
-        valset,
+        # valset,
         tokenizer,
         num_rounds,
     ):  # pylint: disable=too-many-arguments
@@ -53,12 +53,12 @@ class FlowerClient(NumPyClient):
         self.tokenizer = tokenizer
         self.num_rounds = num_rounds
         self.trainset = trainset
-        self.valset = valset
+        # self.valset = valset
         self.model_cfg = model_cfg
 
         # instantiate model
         self.model = get_model(model_cfg)
-    
+
     def fit(
         self, parameters: NDArrays, config: Dict[str, Scalar]
     ) -> Tuple[NDArrays, int, Dict]:
@@ -87,7 +87,10 @@ class SFTClient(FlowerClient):
         self.training_arguments.output_dir = config["save_path"]
 
         if self.model_cfg.use_adopt:
-            self.training_arguments.optimizers = (ADOPT(self.model.parameters(), lr=new_lr, decouple=True), None)
+            self.training_arguments.optimizers = (
+                ADOPT(self.model.parameters(), lr=new_lr, decouple=True),
+                None,
+            )
         else:
             self.training_arguments.optimizers = (None, None)
 
@@ -97,7 +100,7 @@ class SFTClient(FlowerClient):
             processing_class=self.tokenizer,
             args=self.training_arguments,
             train_dataset=self.trainset,
-            eval_dataset=self.valset,
+            # eval_dataset=self.valset,
         )
 
         # Do local training
@@ -122,15 +125,29 @@ def client_fn(context: Context) -> FlowerClient:
     cfg = DictConfig(replace_keys(unflatten_dict(context.run_config)))
 
     # Let's get the client partition
-    client_trainset = load_data(partition_id, num_partitions, cfg.static.dataset.name, "train")
-    client_valset = load_data(partition_id, num_partitions, cfg.static.dataset.name, "validation")
+    client_trainset = load_data(
+        partition_id,
+        num_partitions,
+        cfg.static.dataset.name,
+        cfg.static.dataset.prompt_template,
+        cfg.static.dataset.completion_template,
+        "train",
+    )
+    # client_valset = load_data(
+    #     partition_id,
+    #     num_partitions,
+    #     cfg.static.dataset.name,
+    #     cfg.static.dataset.prompt_template,
+    #     cfg.static.dataset.completion_template,
+    #     "validation",
+    # )
     tokenizer = get_tokenizer(cfg.model.name)
 
     return SFTClient(
         cfg.model,
         cfg.train,
         client_trainset,
-        client_valset,
+        # client_valset,
         tokenizer,
         num_rounds,
     ).to_client()

@@ -64,7 +64,9 @@ def server_fn(context: Context):
     current_time = datetime.now()
     current_time_str = current_time.strftime("%Y-%m-%d_%H-%M-%S")
     model_slug = slugify(context.run_config["model.name"])
-    save_path = os.path.join(context.run_config["save-path"], model_slug, current_time_str)
+    save_path = os.path.join(
+        context.run_config["save-path"], model_slug, current_time_str
+    )
     os.makedirs(save_path, exist_ok=True)
 
     # Read from config

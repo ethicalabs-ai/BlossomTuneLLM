@@ -7,7 +7,7 @@ services:
   blossomtune-client-node-01:
     build: .
     environment:
-      SUPERLINK: "blossomtune-server-node:9093"
+      SUPERLINK: "blossomtune-server-node:9092"
       NODE_DATA_PATH: "/app/data/"
       PARTITION_ID: 0
       NUM_PARTITIONS: 10
@@ -17,7 +17,7 @@ services:
   blossomtune-client-node-02:
     build: .
     environment:
-      SUPERLINK: "blossomtune-server-node:9093"
+      SUPERLINK: "blossomtune-server-node:9092"
       NODE_DATA_PATH: "/app/data/"
       PARTITION_ID: 1
       NUM_PARTITIONS: 10
@@ -27,7 +27,7 @@ services:
   blossomtune-client-node-03:
     build: .
     environment:
-      SUPERLINK: "blossomtune-server-node:9093"
+      SUPERLINK: "blossomtune-server-node:9092"
       NODE_DATA_PATH: "/app/data/"
       PARTITION_ID: 2
       NUM_PARTITIONS: 10
@@ -37,7 +37,7 @@ services:
   blossomtune-client-node-04:
     build: .
     environment:
-      SUPERLINK: "blossomtune-server-node:9093"
+      SUPERLINK: "blossomtune-server-node:9092"
       NODE_DATA_PATH: "/app/data/"
       PARTITION_ID: 3
       NUM_PARTITIONS: 10

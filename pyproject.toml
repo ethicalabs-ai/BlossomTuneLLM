@@ -29,7 +29,7 @@ clientapp = "blossomtune.client_app:app"
 
 [tool.flwr.app.config]
 model.name = "HuggingFaceTB/SmolLM2-135M"
-model.quantization = 0
+model.quantization = 4
 model.gradient-checkpointing = true
 model.lora.peft-lora-r = 4
 model.lora.peft-lora-alpha = 4

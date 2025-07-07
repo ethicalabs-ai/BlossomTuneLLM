@@ -99,21 +99,3 @@ services:
     volumes:
       - ./data:/app/data
     command: ["supernode"]
-  blossomtune-client-node-06:
-    build: .
-    image: docker.io/ethicalabs/blossomtune-llm:latest
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-    environment:
-      SUPERLINK: "blossomtune-server-node:9092"
-      NODE_DATA_PATH: "/app/data/"
-      PARTITION_ID: 5
-      NUM_PARTITIONS: 10
-    volumes:
-      - ./data:/app/data
-    command: ["supernode"]

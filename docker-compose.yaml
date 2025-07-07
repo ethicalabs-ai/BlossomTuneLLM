@@ -9,6 +9,8 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+    volumes:
+      - ./results:/app/results
   blossomtune-client-node-01:
     build: .
     image: docker.io/ethicalabs/blossomtune-llm:latest
@@ -77,24 +79,6 @@ services:
       SUPERLINK: "blossomtune-server-node:9092"
       NODE_DATA_PATH: "/app/data/"
       PARTITION_ID: 3
-      NUM_PARTITIONS: 10
-    volumes:
-      - ./data:/app/data
-    command: ["supernode"]
-  blossomtune-client-node-05:
-    build: .
-    image: docker.io/ethicalabs/blossomtune-llm:latest
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-    environment:
-      SUPERLINK: "blossomtune-server-node:9092"
-      NODE_DATA_PATH: "/app/data/"
-      PARTITION_ID: 4
       NUM_PARTITIONS: 10
     volumes:
       - ./data:/app/data

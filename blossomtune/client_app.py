@@ -25,7 +25,6 @@ from .models import (
     set_parameters,
     get_parameters,
 )
-from trl.trainer import ConstantLengthDataset
 
 # Avoid warnings
 os.environ["TOKENIZERS_PARALLELISM"] = "true"

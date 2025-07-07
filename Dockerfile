@@ -2,6 +2,8 @@
 FROM python:3.11.12-slim
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
+RUN apt-get update && apt-get install build-essential -y
+
 # Change the working directory to the `app` directory
 WORKDIR /app
 

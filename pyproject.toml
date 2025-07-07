@@ -79,7 +79,7 @@ train.learning-rate-min = 1e-6
 train.seq-length = 512
 train.training-arguments.output-dir = ""
 train.training-arguments.learning-rate = ""
-train.training-arguments.per-device-train-batch-size = 4
+train.training-arguments.per-device-train-batch-size = 8
 train.training-arguments.gradient-accumulation-steps = 1
 train.training-arguments.logging-steps = 1
 train.training-arguments.num-train-epochs = 3
@@ -96,7 +96,7 @@ train.training-arguments.lr-scheduler-type = "constant"
 strategy.fraction-fit = 1.0
 strategy.fraction-evaluate = 0.0
 num-server-rounds = 20
-use-flexlora = true
+use-flexlora = false
 data-path = "/app/data"
 save-path = "/app/results"
 

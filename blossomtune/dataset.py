@@ -6,6 +6,9 @@ from datasets import Dataset, DatasetDict
 from flwr_datasets import FederatedDataset
 from flwr_datasets.partitioner import IidPartitioner
 from transformers import AutoTokenizer
+from jinja2 import Template, StrictUndefined
+from jinja2.exceptions import TemplateError, UndefinedError
+
 
 FDS = {}  # Cache FederatedDataset
 
@@ -18,6 +21,11 @@ def get_tokenizer(model_name: str):
     return tokenizer
 
 
+def render_template(template: str, context: dict):
+    """Render jinja2 template string."""
+    return Template(template, undefined=StrictUndefined).render(**context)
+
+
 def extract_field_names_from_template(template_string):
     """
     Extracts all unique field names (placeholders) from a template string.
@@ -25,7 +33,8 @@ def extract_field_names_from_template(template_string):
     """
     if not template_string:  # Handle empty template string
         return []
-    return list(set(re.findall(r"\{(\w+)\}", template_string)))
+    pattern = r"\{\{\s*(\w+)\s*\}\}"
+    return list(set(re.findall(pattern, template_string)))
 
 
 def reformat_dynamic(example, prompt_template, completion_template):
@@ -46,10 +55,10 @@ def reformat_dynamic(example, prompt_template, completion_template):
         prompt_kwargs[field_name] = example.get(field_name, "")
 
     try:
-        prompt_value = prompt_template.format(**prompt_kwargs).strip()
-    except KeyError as e:
+        prompt_value = render_template(prompt_template, prompt_kwargs).strip()
+    except (TemplateError, UndefinedError) as e:
         print(
-            f"Warning: Prompt formatting error. Missing key: {e}. Template: '{prompt_template}', Kwargs: {prompt_kwargs}"
+            f"Warning: Prompt formatting error ({e}). Template: '{prompt_template}', Kwargs: {prompt_kwargs}"
         )
         prompt_value = ""
 
@@ -59,10 +68,12 @@ def reformat_dynamic(example, prompt_template, completion_template):
         completion_kwargs[field_name] = example.get(field_name, "")
 
     try:
-        completion_value = completion_template.format(**completion_kwargs).strip()
-    except KeyError as e:
+        completion_value = render_template(
+            completion_template, completion_kwargs
+        ).strip()
+    except (TemplateError, UndefinedError) as e:
         print(
-            f"Warning: Completion formatting error. Missing key: {e}. Template: '{completion_template}', Kwargs: {completion_kwargs}"
+            f"Warning: Completion formatting error ({e}). Template: '{completion_template}', Kwargs: {completion_kwargs}"
         )
         completion_value = ""
 

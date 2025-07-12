@@ -10,7 +10,7 @@ Built upon the insights from [flower.ai](https://flower.ai)'s FlowerTune LLM, Bl
 
 In an era where large language models demand immense computational resources and often raise privacy concerns due to centralized data processing, this project offers a powerful alternative for:
 
-  * **Decentralization & Privacy-First AI:** Train models collaboratively without centralizing sensitive data, ideal for privacy-critical domains.
+  * **Decentralization & Privacy-First AI:** Train models collaboratively without centralizing sensitive data, ideal for privacy-critical domains (work in progress!).
   * **Efficiency & Sustainability:** Optimize the use of GPU resources by enabling parallelized training, eliminating waste and fostering more sustainable AI development.
   * **Accessibility for Small Labs & Researchers:** Provides an accessible framework for smaller research labs, students, and companies to build specialized, privacy-first models, reducing dependency on large, proprietary AI services.
   * **Customization & Flexibility:** Offers streamlined customization of fine-tuning parameters, target layers, and includes centralized dataset partitioning from Hugging Face, along with flexible pre-processing templating for prompts and completions.

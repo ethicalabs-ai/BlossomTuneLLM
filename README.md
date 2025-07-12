@@ -6,7 +6,7 @@ BlossomTuneLLM is an open-source project designed to enable **Supervised Fine-Tu
 
 Built upon the insights from [flower.ai](https://flower.ai)'s FlowerTune LLM, BlossomTuneLLM significantly enhances the capability to run federated fine-tuning experiments by providing a robust, containerized solution for parallelized workloads.
 
-### Why Federated Learning Matters:
+### Why BlossomTuneLLM:
 
 In an era where large language models demand immense computational resources and often raise privacy concerns due to centralized data processing, this project offers a powerful alternative for:
 

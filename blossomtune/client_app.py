@@ -7,17 +7,16 @@ from typing import Dict, Tuple
 import torch
 from flwr.client import ClientApp, NumPyClient
 from flwr.common import Context
-from flwr.common.config import unflatten_dict
 from flwr.common.typing import NDArrays, Scalar
 from omegaconf import DictConfig
 from adopt import ADOPT
 
 from trl import SFTTrainer, SFTConfig
 
+from .config import get_run_config
 from .dataset import (
     get_tokenizer,
     load_data,
-    replace_keys,
 )
 from .models import (
     cosine_annealing,
@@ -121,7 +120,7 @@ def client_fn(context: Context) -> FlowerClient:
     partition_id = context.node_config["partition-id"]
     num_partitions = context.node_config["num-partitions"]
     num_rounds = context.run_config["num-server-rounds"]
-    cfg = DictConfig(replace_keys(unflatten_dict(context.run_config)))
+    cfg = get_run_config(context)
 
     # Let's get the client partition
     client_trainset = load_data(

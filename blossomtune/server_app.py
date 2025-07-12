@@ -5,12 +5,10 @@ from datetime import datetime
 from slugify import slugify
 
 from flwr.common import Context, ndarrays_to_parameters
-from flwr.common.config import unflatten_dict
 from flwr.server import ServerApp, ServerAppComponents, ServerConfig
-from omegaconf import DictConfig
 
+from .config import get_run_config
 from .models import get_model, get_parameters, set_parameters
-from .dataset import replace_keys
 from .strategy import FlowerTuneLlm, FlowerTuneLlmFlexLoRA
 
 
@@ -71,7 +69,7 @@ def server_fn(context: Context):
 
     # Read from config
     num_rounds = context.run_config["num-server-rounds"]
-    cfg = DictConfig(replace_keys(unflatten_dict(context.run_config)))
+    cfg = get_run_config(context)
 
     # Get initial model weights
     init_model = get_model(cfg.model)

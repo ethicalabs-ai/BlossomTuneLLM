@@ -18,10 +18,10 @@ In an era where large language models demand immense computational resources and
 ## Key Features:
 
   * **Federated Supervised Fine-Tuning (SFT):** Leverages the Flower framework to facilitate federated learning for SLMs.
-  * **Deployment-Optimized Execution:** Engineered for real-world deployment by leveraging Docker containers and NVIDIA Container Runtime. This enables parallelized training across multiple nodes, ensuring 100% utilization of GPU resources.
+  * **Deployment-Optimized Execution:** Engineered for real-world deployment by leveraging containers and NVIDIA Container Runtime. This enables the possibility to run parallelized training across multiple compute nodes, ensuring 100% utilization of GPU resources.
   * **Enhanced Customization:** Easily configure fine-tuning parameters, learning rates (with cosine annealing schedule), and specific LoRA target modules.
   * **Flexible Data Handling:** Supports centralized dataset partitioning from Hugging Face and dynamic prompt/completion templating for diverse datasets.
-  * **ADOPT Optimizer Integration:** Optional use of ADOPT optimizer for improved training efficiency.
+  * **ADOPT Optimizer Integration:** Optional use [ADOPT](https://arxiv.org/abs/2411.02853) optimizer for improved training efficiency.
   * **Apache-2.0 Licensed:** Open and permissive for broad use and collaboration.
 
 ## Getting Started with Docker (and Podman):
@@ -74,10 +74,16 @@ docker compose exec -it blossomtune-server-node bash
 Then, run the Flower training command with your desired `run-config`:
 
 ```bash
-uv run flwr run . local-deployment --stream --run-config="use-flexlora=false strategy.fraction-fit=1 model.name='HuggingFaceTB/SmolLM2-135M-Instruct' train.training-arguments.per-device-train-batch-size=8 train.training-arguments.bf16=true train.training-arguments.tf32=true num-server-rounds=100"
+uv run flwr run . local-deployment --stream --run-config="model.name='HuggingFaceTB/SmolLM2-135M-Instruct' train.training-arguments.per-device-train-batch-size=8 train.training-arguments.bf16=true train.training-arguments.tf32=true num-server-rounds=100"
 ```
 
 This command initiates a federated training run, specifying the model, batch size, mixed-precision training (bf16/tf32), and the number of server rounds.
+
+The fine-tuned model adapter will be available at `./results/huggingfacetb-smollm2-135m-instruct/<DATE_PLACEHOLDER>/peft_100/`.
+
+This allows you to fine-tune multiple models using the same codebase, with unified hyperparameter settings, speeding up research and development.
+
+Additional tooling to merge the adapter and push the merged model to HuggingFace will be provided soon.
 
 ## Contributing
 

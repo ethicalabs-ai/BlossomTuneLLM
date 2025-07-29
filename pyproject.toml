@@ -100,8 +100,6 @@ num-server-rounds = 20
 use-flexlora = false
 data-path = "/app/data"
 save-path = "/app/results"
-
-[tool.flwr.app.config.static]
 dataset.name = "flwrlabs/alpaca-gpt4"
 dataset.prompt_template = "{% if instruction %}{{ instruction }} {% endif %}{{ input }}"
 dataset.completion_template = "{{output}}"

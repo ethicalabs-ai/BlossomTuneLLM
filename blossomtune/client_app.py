@@ -126,17 +126,17 @@ def client_fn(context: Context) -> FlowerClient:
     client_trainset = load_data(
         partition_id,
         num_partitions,
-        cfg.static.dataset.name,
-        cfg.static.dataset.prompt_template,
-        cfg.static.dataset.completion_template,
+        cfg.dataset.name,
+        cfg.dataset.prompt_template,
+        cfg.dataset.completion_template,
         "train",
     )
     # client_valset = load_data(
     #     partition_id,
     #     num_partitions,
-    #     cfg.static.dataset.name,
-    #     cfg.static.dataset.prompt_template,
-    #     cfg.static.dataset.completion_template,
+    #     cfg.dataset.name,
+    #     cfg.dataset.prompt_template,
+    #     cfg.dataset.completion_template,
     #     "validation",
     # )
     tokenizer = get_tokenizer(cfg.model.name)

@@ -131,9 +131,7 @@ def process_dataset(dataset, prompt_template="", completion_template=""):
             )
     elif isinstance(dataset, Dataset):
         dataset = dataset.map(
-            lambda ex: reformat_to_messages(
-                ex, prompt_template, completion_template
-            )
+            lambda ex: reformat_to_messages(ex, prompt_template, completion_template)
         )
     return dataset
 

@@ -62,12 +62,12 @@ If you prefer containerized execution:
 Customize your simulation in `pyproject.toml` under `[tool.flwr.app.config]`:
 
 ### Dataset & Hardware
-- `dataset.name`: Target Hugging Face dataset (e.g., `ethicalabs/Kurtis-EON1-SFT`).
+- `dataset.name`: Target Hugging Face dataset (e.g., `mlabonne/FineTome-100k-dedup`).
 - `data-path`: Directory for shared caching (default: `./data`).
 - `save-path`: Where results and adapters are saved.
 
 ### Model & Quantization
-- `model.name`: Target Hugging Face model (e.g., `google/gemma-2b-it`).
+- `model.name`: Target Hugging Face model (e.g., `HuggingFaceTB/SmolLM2-135M-Instruct`).
 - `model.quantization`: Bits for quantization (default: `4`).
 - `model.use-adopt`: Whether to use the ADOPT optimizer.
 

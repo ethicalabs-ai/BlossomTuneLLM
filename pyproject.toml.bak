@@ -108,7 +108,7 @@ serverapp = "blossomtune.server_app:app"
 clientapp = "blossomtune.client_app:app"
 
 [tool.flwr.app.config]
-model.name = "HuggingFaceTB/SmolLM2-135M-Instruct"
+model.name = "ethicalabs/Echo-DSRN-486M-v0.7.6-SFT"
 model.quantization = 4
 model.gradient-checkpointing = true
 model.lora.peft-lora-r = 8
@@ -146,7 +146,7 @@ num-server-rounds = 25
 use-flexlora = false
 data-path = "./data"
 save-path = "./results"
-dataset.name = "mlabonne/FineTome-100k-dedup"
+dataset.name = "mlabonne/FineTome-100k"
 dataset.prompt_template = ""
 dataset.completion_template = ""
 

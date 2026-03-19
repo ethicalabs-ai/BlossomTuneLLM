@@ -6,7 +6,7 @@ Optimized for **Flower 1.27.0+** and **[Flower Apps](https://flower.ai/apps/)** 
 
 ## Getting Started (AMD ROCm / Ubuntu)
 
-For high-performance execution on AMD GPUs, we recommend using `uv` to manage your environment directly.
+We recommend using [uv](https://github.com/astral-sh/uv) to manage your environment directly.
 
 ### 1. Installation
 ```bash

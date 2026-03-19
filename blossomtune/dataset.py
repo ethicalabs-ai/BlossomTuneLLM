@@ -92,6 +92,36 @@ def reformat_to_messages(example, prompt_template, completion_template):
     return example
 
 
+def map_conversations_to_messages(example):
+    """
+    Map ShareGPT 'conversations' format to TRL 'messages' format.
+    Standardizes Roles:
+    - human/user -> user
+    - gpt/assistant/bot/chatgpt -> assistant
+    - system -> system
+    """
+    if "conversations" in example:
+        messages = []
+        for turn in example["conversations"]:
+            role = turn.get("from", "")
+            content = turn.get("value", "")
+            if not role or not content:
+                continue
+            if role in ["human", "user"]:
+                role = "user"
+            elif role in ["gpt", "assistant", "bot", "chatgpt"]:
+                role = "assistant"
+            elif role == "system":
+                role = "system"
+            else:
+                # Fallback: assume human if unknown, or skip?
+                # For now, let's skip unknown roles to avoid ambiguity
+                continue
+            messages.append({"role": role, "content": content})
+        example["messages"] = messages
+    return example
+
+
 def process_dataset(dataset, prompt_template="", completion_template=""):
     """
     Process a dataset into TRL's messages format.
@@ -113,12 +143,26 @@ def process_dataset(dataset, prompt_template="", completion_template=""):
     if not has_templates:
         columns = _get_columns(dataset)
         if "messages" not in columns:
-            raise ValueError(
-                "No prompt/completion templates provided and dataset does not "
-                "contain a 'messages' column. Either provide templates or use "
-                "a conversational dataset with a 'messages' column."
-            )
-        # Dataset already has messages — pass through as-is
+            if "conversations" in columns:
+                # Handle ShareGPT format automatically
+                if isinstance(dataset, DatasetDict):
+                    for split in dataset:
+                        dataset[split] = dataset[split].map(
+                            map_conversations_to_messages,
+                            desc="Mapping conversations to messages",
+                        )
+                else:
+                    dataset = dataset.map(
+                        map_conversations_to_messages,
+                        desc="Mapping conversations to messages",
+                    )
+            else:
+                raise ValueError(
+                    "No prompt/completion templates provided and dataset does not "
+                    "contain a 'messages' or 'conversations' column. Either provide "
+                    "templates or use a conversational dataset."
+                )
+        # Dataset already has messages (or was just mapped) — pass through
         return dataset
 
     # Legacy path: build messages from templates

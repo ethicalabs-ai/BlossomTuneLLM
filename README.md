@@ -14,7 +14,7 @@ git clone https://github.com/ethicalabs-ai/BlossomTuneLLM.git
 cd BlossomTuneLLM
 
 # Install dependencies with ROCm support
-uv sync --group rocm --all-indexes
+uv sync --group rocm
 ```
 
 ### 2. Host Configuration

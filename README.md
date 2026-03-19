@@ -1,101 +1,86 @@
-# BlossomTuneLLM: Federated Supervised Fine-Tune SLMs
+# BlossomTuneLLM: Federated Fine-Tuning Simulation Setup for SLMs using Flower and TRL
 
-> [!NOTE]
-> **New Version for Flower Hub!**
-> This update brings native support for conversational datasets and performance-optimized disk-based caching, making it easier than ever to fine-tune SLMs in a federated environment.
+BlossomTuneLLM is a streamlined setup for simulating **Federated Supervised Fine-Tuning (SFT)** of Small Language Models (SLMs).
 
-## Empowering Decentralized & Efficient LLM Customization
+Optimized for **Flower 1.27.0+** and **[Flower Apps](https://flower.ai/apps/)** readiness, it prioritizes **AMD ROCm** performance while remaining compatible with NVIDIA CUDA.
 
-BlossomTuneLLM is an open-source project designed to enable **Supervised Fine-Tuning (SFT) of Small Language Models (SLMs)** in a federated learning setup, specifically optimized for **deployment environments leveraging NVIDIA and AMD GPUs**.
+## Getting Started (AMD ROCm / Ubuntu)
 
-Built upon the insights from [flower.ai](https://flower.ai)'s FlowerTune LLM, BlossomTuneLLM significantly enhances the capability to run federated fine-tuning experiments by providing a robust, containerized solution for parallelized workloads.
+For high-performance execution on AMD GPUs, we recommend using `uv` to manage your environment directly.
 
-### Why BlossomTuneLLM:
-
-In an era where large language models demand immense computational resources and often raise privacy concerns due to centralized data processing, this project offers a powerful alternative for:
-
-  * **Decentralization & Privacy-First AI:** Train models collaboratively without centralizing sensitive data.
-  * **Efficiency & Sustainability:** Optimize the use of GPU resources by enabling parallelized training and shared disk-based caching.
-  * **Accessibility for Small Labs & Researchers:** Provides an accessible framework for smaller research labs, students, and companies to build specialized, privacy-first models.
-  * **Customization & Flexibility:** Offers streamlined customization of fine-tuning parameters, target layers, and supports both legacy templates and modern conversational formats.
-
-## Key Features:
-
-  * **Federated Supervised Fine-Tuning (SFT):** Leverages the Flower framework to facilitate federated learning for SLMs.
-  * **Conversational Dataset Support:** Native support for TRL's `messages` format, with automated template rendering for backward compatibility.
-  * **Performance Optimization:** Disk-based caching of tokenized datasets to eliminate redundant processing across federated rounds.
-  * **Deployment-Optimized Execution:** Engineered for real-world deployment leveraging containers and GPU acceleration (NVIDIA/AMD).
-  * **Enhanced Customization:** Easily configure fine-tuning parameters, learning rates (with cosine annealing schedule), and specific LoRA target modules.
-  * **ADOPT Optimizer Integration:** Optional use of the [ADOPT](https://arxiv.org/abs/2411.02853) optimizer for improved training efficiency.
-  * **Apache-2.0 Licensed:** Open and permissive for broad use and collaboration.
-
-## Getting Started with Docker (and Podman):
-
-BlossomTuneLLM is containerized for easy setup and parallelized execution. You can use either Docker or Podman.
-
----
-
-**Pre-requisite for NVIDIA Container Toolkit:**
-
-If you plan to leverage NVIDIA GPUs with BlossomTuneLLM, you will need to install the NVIDIA Container Toolkit.
-
-This toolkit enables Docker (and Podman via `podman-nvidia-container-runtime`) to interact with your NVIDIA GPUs.
-
-For installation instructions and further information, please refer to the official NVIDIA Container Toolkit documentation: [https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
-
----
-
-First, clone the repository:
-
+### 1. Installation
 ```bash
 git clone https://github.com/ethicalabs-ai/BlossomTuneLLM.git
 cd BlossomTuneLLM
+
+# Install dependencies with ROCm support
+uv sync --group rocm --all-indexes
 ```
 
-### Running Superlink and Supernodes on the Same Machine:
+### 2. Host Configuration
+Flower uses a local configuration file to define simulation resources. Create or update `~/.flwr/config.toml` on your host machine:
 
-The `docker-compose.yaml` file defines a server node (`blossomtune-server-node`) and multiple client nodes (`blossomtune-client-node-01` to `-04`), each configured to utilize GPU resources.
+```toml
+[superlink]
+default = "local"
 
-To bring up all services:
+[superlink.supergrid]
+address = "supergrid.flower.ai"
 
+[superlink.local]
+options.num-supernodes = 10
+options.backend.client-resources.num-cpus = 4
+options.backend.client-resources.num-gpus = 1
+```
+
+### 3. Run Simulation
+Initiate the federated training simulation across all partitions:
 ```bash
-docker compose up
+uv run flwr run --stream
 ```
 
-*(Note: If using Podman, you might need to use `podman compose up` or adjust commands based on your Podman setup.)*
-
-### Running the Federated Training:
-
-Once the containers are running, you can execute the federated fine-tuning training.
-
-This example fine-tunes for `SmolLM2-135M-Instruct`.
-
-Access the server node's bash shell:
-
+To override the model or change the number of rounds:
 ```bash
-docker compose exec -it blossomtune-server-node bash
+uv run flwr run --stream --run-config="model.name='HuggingFaceTB/SmolLM2-135M-Instruct' num-server-rounds=5"
 ```
 
-Then, run the Flower training command with your desired `run-config`:
+## Running with Docker (Optional)
 
-```bash
-uv run flwr run --stream --run-config="model.name='HuggingFaceTB/SmolLM2-135M-Instruct' train.training-arguments.per-device-train-batch-size=4 train.training-arguments.bf16=true num-server-rounds=10"
-```
+If you prefer containerized execution:
 
-This command initiates a federated training run, specifying the model, batch size, mixed-precision training (bf16/tf32), and the number of server rounds.
+1. **Startup**: `docker compose up -f docker-compose-rocm.yaml`
+2. **Execute**: `docker compose exec -it blossomtune-server-node bash`
+3. **Run**: `uv run flwr run --stream`
 
-The fine-tuned model adapter will be available at `./results/huggingfacetb-smollm2-135m-instruct/<DATE_PLACEHOLDER>/peft_100/`.
+## Key Features
+- **AMD ROCm Priority**: Native optimization for ROCm 6.x environments.
+- **Flower Hub Ready**: Architected for seamless integration into **[Flower Apps](https://flower.ai/apps/)**.
+- **Conversational Support**: Native handling of TRL's `messages` format with automated template fallback.
+- **Efficient Caching**: Disk-based tokenization caching in `./data/cache` to eliminate redundant processing.
 
-This allows you to fine-tune multiple models using the same codebase, with unified hyperparameter settings, speeding up research and development.
+## Configuration
+Customize your simulation in `pyproject.toml` under `[tool.flwr.app.config]`:
 
-Additional tooling to merge the adapter and push the merged model to HuggingFace will be provided soon.
+### Dataset & Hardware
+- `dataset.name`: Target Hugging Face dataset (e.g., `ethicalabs/Kurtis-EON1-SFT`).
+- `data-path`: Directory for shared caching (default: `./data`).
+- `save-path`: Where results and adapters are saved.
 
-## Contributing
+### Model & Quantization
+- `model.name`: Target Hugging Face model (e.g., `google/gemma-2b-it`).
+- `model.quantization`: Bits for quantization (default: `4`).
+- `model.use-adopt`: Whether to use the ADOPT optimizer.
 
-We welcome contributions from the community\!
+### LoRA (Low-Rank Adaptation)
+- `model.lora.peft-lora-r`: LoRA rank.
+- `model.lora.peft-lora-alpha`: LoRA alpha.
+- `model.lora.peft-target-modules`: Modules to apply LoRA (e.g., `qkv_proj,out_proj`).
 
-Feel free to open issues, submit pull requests, or join discussions.
+### Training Parameters
+- `train.seq-length`: Maximum sequence length (default: `4096`).
+- `train.learning-rate-max`: Peak learning rate.
+- `num-server-rounds`: Total federated learning rounds.
+- `train.training-arguments.*`: Direct mapping to `SFTConfig` parameters (batch size, epochs, etc.).
 
-## License
-
-BlossomTuneLLM is released under the Apache-2.0 License.
+---
+*BlossomTuneLLM is a simulation setup for federated learning, released under the Apache-2.0 License. It is intended for research and educational purposes only.*

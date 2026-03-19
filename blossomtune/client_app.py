@@ -48,6 +48,7 @@ class FlowerClient(NumPyClient):
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.train_cfg = train_cfg
         self.training_arguments = SFTConfig(**train_cfg.training_arguments)
+        self.training_arguments.dataset_kwargs = {"skip_prepare_dataset": True}
         self.tokenizer = tokenizer
         self.num_rounds = num_rounds
         self.trainset = trainset
@@ -132,24 +133,24 @@ def client_fn(context: Context) -> FlowerClient:
     num_rounds = context.run_config["num-server-rounds"]
     cfg = get_run_config(context)
 
-    # Let's get the client partition
+    tokenizer = get_tokenizer(cfg.model.name)
+    training_args = SFTConfig(**cfg.train.training_arguments)
+
+    # load_data handles tokenization caching internally via TOKENIZED_CACHE (memory)
+    # and via provided data_path (disk)
+    prompt_template = getattr(cfg.dataset, "prompt_template", "")
+    completion_template = getattr(cfg.dataset, "completion_template", "")
     client_trainset = load_data(
         partition_id,
         num_partitions,
         cfg.dataset.name,
-        cfg.dataset.prompt_template,
-        cfg.dataset.completion_template,
+        prompt_template,
+        completion_template,
         "train",
+        tokenizer=tokenizer,
+        max_seq_length=training_args.max_seq_length,
+        data_path=cfg.data_path,
     )
-    # client_valset = load_data(
-    #     partition_id,
-    #     num_partitions,
-    #     cfg.dataset.name,
-    #     cfg.dataset.prompt_template,
-    #     cfg.dataset.completion_template,
-    #     "validation",
-    # )
-    tokenizer = get_tokenizer(cfg.model.name)
 
     return SFTClient(
         cfg.model,

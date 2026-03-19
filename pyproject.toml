@@ -1,25 +1,67 @@
 [project]
 name = "blossomtune"
-version = "1.0.0"
+version = "1.0.1"
 description = "BlossomTune LLM"
 license = "Apache-2.0"
 dependencies = [
-    "flwr[simulation]>=1.19.0",
-    "flwr-datasets>=0.5.0",
-    "torch==2.8.0",
-    "trl==0.19.0",
-    "bitsandbytes==0.46.0 ; platform_system != 'Darwin'",
+    "flwr[simulation]>=1.27.0",
     "scipy==1.16.0",
-    "peft==0.15.2",
-    "transformers==4.53.0",
-    "sentencepiece==0.2.0",
+    "peft>=0.18.0",
+    "torch>=2.10.0",
+    "torchaudio>=2.10.0",
+    "torchvision>=0.25.0",
+    "transformers==5.2.0",
+    "sentencepiece>=0.2.0",
     "omegaconf==2.3.0",
     "hf_transfer==0.1.9",
     "torch-adopt==0.1.0",
     "python-slugify>=8.0.4",
     "jinja2>=3.1.6",
+    "accelerate",
+    "bitsandbytes>=0.46.1",
+    "kernels>=0.12.2",
+    "trl>=0.19.1",
+    "flwr-datasets>=0.6.0",
 ]
-requires-python = ">=3.11.12"
+requires-python = ">=3.12"
+
+[dependency-groups]
+dev = [
+    "black",
+    "isort",
+    "pre-commit",
+    "ruff",
+    "pytest",
+    "pytest-mock",
+    "pytest-cov",
+]
+rocm = [
+    "pytorch-triton-rocm==3.5.1",
+    "triton-rocm==3.6.0",
+]
+
+[[tool.uv.index]]
+name = "pytorch-rocm"
+url = "https://download.pytorch.org/whl/rocm7.1"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-rocm" }
+pytorch-triton-rocm = { index = "pytorch-rocm" }
+torchaudio = { index = "pytorch-rocm" }
+torchvision = { index = "pytorch-rocm" }
+triton-rocm = { index = "pytorch-rocm" }
+
+[tool.uv]
+prerelease = "allow"
+
+[tool.hatch.build.targets.wheel]
+packages = ["blossomtune"]
 
 [tool.ruff.lint]
 
@@ -66,60 +108,43 @@ serverapp = "blossomtune.server_app:app"
 clientapp = "blossomtune.client_app:app"
 
 [tool.flwr.app.config]
-model.name = "HuggingFaceTB/SmolLM2-135M-Instruct"
+model.name = "ethicalabs/Echo-DSRN-486M-v0.7.6-SFT"
 model.quantization = 4
 model.gradient-checkpointing = true
 model.lora.peft-lora-r = 8
 model.lora.peft-lora-alpha = 16
 model.lora.peft-use-dora = true
-model.lora.peft-target-modules = "q_proj,k_proj,v_proj,o_proj,gate_proj,down_proj,up_proj"
+model.lora.peft-target-modules = "linear_read,linear_gate,linear_memory,linear_pred,mlp_up,mlp_down,qkv_proj,out_proj"
 model.use-adopt = true
-train.save-every-round = 5
+train.save-every-round = 1
 train.learning-rate-max = 5e-5
 train.learning-rate-min = 1e-6
-train.seq-length = 512
+train.seq-length = 4096
 train.training-arguments.output-dir = ""
 train.training-arguments.learning-rate = ""
-train.training-arguments.per-device-train-batch-size = 8
+train.training-arguments.per-device-train-batch-size = 4
 train.training-arguments.gradient-accumulation-steps = 1
 train.training-arguments.logging-steps = 1
 train.training-arguments.num-train-epochs = 3
-train.training-arguments.max-steps = 8
+train.training-arguments.max-steps = 10
 train.training-arguments.save-steps = 1000
 train.training-arguments.save-total-limit = 10
 train.training-arguments.max-grad-norm = 1.0
 train.training-arguments.gradient-checkpointing = true
 train.training-arguments.bf16 = true
-train.training-arguments.tf32 = true
+train.training-arguments.tf32 = false
 train.training-arguments.optim = "adamw_torch"
-train.training-arguments.eos_token = "<|im_end|>"
 train.training-arguments.lr-scheduler-type = "constant"
-strategy.fraction-fit = 1.0
+train.training-arguments.eos_token = ""
+strategy.fraction-fit = 0.4
 strategy.fraction-evaluate = 0.0
-num-server-rounds = 20
+num-server-rounds = 10
 use-flexlora = false
-data-path = "/app/data"
-save-path = "/app/results"
+data-path = "./app/data"
+save-path = "./app/results"
 dataset.name = "flwrlabs/alpaca-gpt4"
 dataset.prompt_template = "{% if instruction %}{{ instruction }} {% endif %}{{ input }}"
 dataset.completion_template = "{{output}}"
-
-[tool.flwr.federations]
-default = "local-deployment"
-
-[tool.flwr.federations.local-deployment]
-address = "0.0.0.0:9093"
-insecure = true
-
-[tool.flwr.federations.local-simulation]
-options.num-supernodes = 10
-options.backend.client-resources.num-cpus = 4
-options.backend.client-resources.num-gpus = 1.0
-
-[dependency-groups]
-dev = [
-    "pytest>=8.4.1",
-]
 
 [tool.pytest.ini_options]
 pythonpath = "."

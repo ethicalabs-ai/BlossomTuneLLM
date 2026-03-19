@@ -16,7 +16,10 @@ FDS = {}  # Cache FederatedDataset
 def get_tokenizer(model_name: str):
     """Get tokenizer, data_collator and prompt formatting."""
     tokenizer = AutoTokenizer.from_pretrained(
-        model_name, use_fast=True, padding_side="right"
+        model_name,
+        use_fast=True,
+        padding_side="right",
+        trust_remote_code=True,
     )
     return tokenizer
 

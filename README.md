@@ -74,7 +74,7 @@ Customize your simulation in `pyproject.toml` under `[tool.flwr.app.config]`:
 ### LoRA (Low-Rank Adaptation)
 - `model.lora.peft-lora-r`: LoRA rank.
 - `model.lora.peft-lora-alpha`: LoRA alpha.
-- `model.lora.peft-target-modules`: Modules to apply LoRA (e.g., `qkv_proj,out_proj`).
+- `model.lora.peft-target-modules`: Modules to apply LoRA (e.g., `q_proj,v_proj`).
 
 ### Training Parameters
 - `train.seq-length`: Maximum sequence length (default: `4096`).

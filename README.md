@@ -1,8 +1,12 @@
-# BlossomTuneLLM: Federated Supervised Fine-Tuning for Small Language Models (SLMs)
+# BlossomTuneLLM: Federated Supervised Fine-Tune SLMs
+
+> [!NOTE]
+> **New Version for Flower Hub!**
+> This update brings native support for conversational datasets and performance-optimized disk-based caching, making it easier than ever to fine-tune SLMs in a federated environment.
 
 ## Empowering Decentralized & Efficient LLM Customization
 
-BlossomTuneLLM is an open-source project designed to enable **Supervised Fine-Tuning (SFT) of Small Language Models (SLMs)** in a federated learning setup, specifically optimized for **deployment environments leveraging NVIDIA GPUs**.
+BlossomTuneLLM is an open-source project designed to enable **Supervised Fine-Tuning (SFT) of Small Language Models (SLMs)** in a federated learning setup, specifically optimized for **deployment environments leveraging NVIDIA and AMD GPUs**.
 
 Built upon the insights from [flower.ai](https://flower.ai)'s FlowerTune LLM, BlossomTuneLLM significantly enhances the capability to run federated fine-tuning experiments by providing a robust, containerized solution for parallelized workloads.
 
@@ -10,18 +14,19 @@ Built upon the insights from [flower.ai](https://flower.ai)'s FlowerTune LLM, Bl
 
 In an era where large language models demand immense computational resources and often raise privacy concerns due to centralized data processing, this project offers a powerful alternative for:
 
-  * **Decentralization & Privacy-First AI:** Train models collaboratively without centralizing sensitive data, ideal for privacy-critical domains (work in progress!).
-  * **Efficiency & Sustainability:** Optimize the use of GPU resources by enabling parallelized training, eliminating waste and fostering more sustainable AI development.
-  * **Accessibility for Small Labs & Researchers:** Provides an accessible framework for smaller research labs, students, and companies to build specialized, privacy-first models, reducing dependency on large, proprietary AI services.
-  * **Customization & Flexibility:** Offers streamlined customization of fine-tuning parameters, target layers, and includes centralized dataset partitioning from Hugging Face, along with flexible pre-processing templating for prompts and completions.
+  * **Decentralization & Privacy-First AI:** Train models collaboratively without centralizing sensitive data.
+  * **Efficiency & Sustainability:** Optimize the use of GPU resources by enabling parallelized training and shared disk-based caching.
+  * **Accessibility for Small Labs & Researchers:** Provides an accessible framework for smaller research labs, students, and companies to build specialized, privacy-first models.
+  * **Customization & Flexibility:** Offers streamlined customization of fine-tuning parameters, target layers, and supports both legacy templates and modern conversational formats.
 
 ## Key Features:
 
   * **Federated Supervised Fine-Tuning (SFT):** Leverages the Flower framework to facilitate federated learning for SLMs.
-  * **Deployment-Optimized Execution:** Engineered for real-world deployment by leveraging containers and NVIDIA Container Runtime. This enables the possibility to run parallelized training across multiple compute nodes, ensuring 100% utilization of GPU resources.
+  * **Conversational Dataset Support:** Native support for TRL's `messages` format, with automated template rendering for backward compatibility.
+  * **Performance Optimization:** Disk-based caching of tokenized datasets to eliminate redundant processing across federated rounds.
+  * **Deployment-Optimized Execution:** Engineered for real-world deployment leveraging containers and GPU acceleration (NVIDIA/AMD).
   * **Enhanced Customization:** Easily configure fine-tuning parameters, learning rates (with cosine annealing schedule), and specific LoRA target modules.
-  * **Flexible Data Handling:** Supports centralized dataset partitioning from Hugging Face and dynamic prompt/completion templating for diverse datasets.
-  * **ADOPT Optimizer Integration:** Optional use [ADOPT](https://arxiv.org/abs/2411.02853) optimizer for improved training efficiency.
+  * **ADOPT Optimizer Integration:** Optional use of the [ADOPT](https://arxiv.org/abs/2411.02853) optimizer for improved training efficiency.
   * **Apache-2.0 Licensed:** Open and permissive for broad use and collaboration.
 
 ## Getting Started with Docker (and Podman):
@@ -74,7 +79,7 @@ docker compose exec -it blossomtune-server-node bash
 Then, run the Flower training command with your desired `run-config`:
 
 ```bash
-uv run flwr run . local-deployment --stream --run-config="model.name='HuggingFaceTB/SmolLM2-135M-Instruct' train.training-arguments.per-device-train-batch-size=8 train.training-arguments.bf16=true train.training-arguments.tf32=true num-server-rounds=100"
+uv run flwr run --stream --run-config="model.name='HuggingFaceTB/SmolLM2-135M-Instruct' train.training-arguments.per-device-train-batch-size=4 train.training-arguments.bf16=true num-server-rounds=10"
 ```
 
 This command initiates a federated training run, specifying the model, batch size, mixed-precision training (bf16/tf32), and the number of server rounds.

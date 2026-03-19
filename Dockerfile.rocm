@@ -1,0 +1,42 @@
+FROM rocm/pytorch:rocm7.1.1_ubuntu24.04_py3.12_pytorch_release_2.10.0 AS builder
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    libpq-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+
+# Set the working directory
+WORKDIR /app
+
+# Copy project definition
+COPY pyproject.toml uv.lock README.md ./
+
+# Install project with ROCm group
+RUN uv sync --no-dev --group rocm
+RUN uv pip install accelerate
+
+# Copy application code
+
+# Environment variables
+ENV PYTHONPATH=/app/
+ENV PATH="/app/.venv/bin:$PATH"
+# Ensure ROCm is recognized
+ENV HSA_OVERRIDE_GFX_VERSION=11.0.2
+
+WORKDIR /app
+
+# Copy the virtual environment from the builder stage
+# This contains all the installed dependencies but not the build tools.
+
+# Copy your application code into the image
+# Using .dockerignore prevents unnecessary files from being copied.
+COPY . .
+
+# Define the entrypoint and default command for the container
+ENTRYPOINT ["/app/docker_entrypoint.sh"]
+CMD ["superlink"]

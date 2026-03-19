@@ -46,6 +46,7 @@ def get_model(model_cfg: DictConfig):
         quantization_config=quantization_config,
         torch_dtype=torch.bfloat16,
         low_cpu_mem_usage=True,
+        trust_remote_code=True,
     )
     # model.enable_input_require_grads()
 
@@ -56,12 +57,13 @@ def get_model(model_cfg: DictConfig):
     peft_config = LoraConfig(
         r=model_cfg.lora.peft_lora_r,
         lora_alpha=model_cfg.lora.peft_lora_alpha,
-        lora_dropout=0.075,
+        lora_dropout=model_cfg.lora.get("peft_lora_dropout", 0.075),
         task_type="CAUSAL_LM",
         target_modules=[
             m.lower().strip() for m in model_cfg.lora.peft_target_modules.split(",")
         ],
         use_dora=model_cfg.lora.peft_use_dora,
+        use_rslora=model_cfg.lora.get("peft_use_rslora", False),
     )
 
     if model_cfg.gradient_checkpointing:

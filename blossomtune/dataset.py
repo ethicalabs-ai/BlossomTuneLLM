@@ -1,8 +1,9 @@
 """blossomtune-llm: A Flower / FlowerTune app."""
 
 import re
-from datasets import Dataset, DatasetDict
-
+import os
+import hashlib
+from datasets import Dataset, DatasetDict, load_from_disk
 from flwr_datasets import FederatedDataset
 from flwr_datasets.partitioner import IidPartitioner
 from transformers import AutoTokenizer
@@ -11,12 +12,16 @@ from jinja2.exceptions import TemplateError, UndefinedError
 
 
 FDS = {}  # Cache FederatedDataset
+TOKENIZED_CACHE = {}  # Cache tokenized datasets across rounds (in-memory)
 
 
 def get_tokenizer(model_name: str):
     """Get tokenizer, data_collator and prompt formatting."""
     tokenizer = AutoTokenizer.from_pretrained(
-        model_name, use_fast=True, padding_side="right"
+        model_name,
+        use_fast=True,
+        padding_side="right",
+        trust_remote_code=True,
     )
     return tokenizer
 
@@ -37,17 +42,20 @@ def extract_field_names_from_template(template_string):
     return list(set(re.findall(pattern, template_string)))
 
 
-def reformat_dynamic(example, prompt_template, completion_template):
+def reformat_to_messages(example, prompt_template, completion_template):
     """
-    Reformat a single example based on dynamic field names specified in templates.
+    Reformat a single example into TRL's messages format using templates.
+
+    Renders prompt and completion templates, then builds a messages list
+    with user/assistant roles for TRL's SFTTrainer.
 
     Args:
         example (dict): A single example (row) from the dataset.
-        prompt_template (str): The template string for the prompt.
-        completion_template (str): The template string for the completion.
+        prompt_template (str): The template string for the user message.
+        completion_template (str): The template string for the assistant message.
 
     Returns:
-        dict: The updated example with 'prompt' and 'completion' fields.
+        dict: The updated example with a 'messages' field.
     """
     prompt_field_names = extract_field_names_from_template(prompt_template)
     prompt_kwargs = {}
@@ -77,41 +85,150 @@ def reformat_dynamic(example, prompt_template, completion_template):
         )
         completion_value = ""
 
-    example["prompt"] = prompt_value
-    example["completion"] = completion_value
+    example["messages"] = [
+        {"role": "user", "content": prompt_value},
+        {"role": "assistant", "content": completion_value},
+    ]
     return example
 
 
-def process_dataset_dynamic(dataset, prompt_template, completion_template):
+def process_dataset(dataset, prompt_template="", completion_template=""):
     """
-    Apply the dynamic reformat function to a Hugging Face Dataset or DatasetDict.
+    Process a dataset into TRL's messages format.
+
+    If templates are provided, renders them to build messages.
+    If templates are empty, expects the dataset to already have a 'messages' column.
     """
+    if not isinstance(dataset, (Dataset, DatasetDict)):
+        raise TypeError("Input must be a Hugging Face Dataset or DatasetDict.")
+
+    has_templates = bool(prompt_template) and bool(completion_template)
+
+    def _get_columns(ds):
+        if isinstance(ds, DatasetDict):
+            first_split = next(iter(ds))
+            return ds[first_split].column_names
+        return ds.column_names
+
+    if not has_templates:
+        columns = _get_columns(dataset)
+        if "messages" not in columns:
+            raise ValueError(
+                "No prompt/completion templates provided and dataset does not "
+                "contain a 'messages' column. Either provide templates or use "
+                "a conversational dataset with a 'messages' column."
+            )
+        # Dataset already has messages — pass through as-is
+        return dataset
+
+    # Legacy path: build messages from templates
     if isinstance(dataset, DatasetDict):
         for split in dataset:
-            # Use a lambda to pass the templates to the map function
             dataset[split] = dataset[split].map(
-                lambda ex: reformat_dynamic(ex, prompt_template, completion_template)
+                lambda ex: reformat_to_messages(
+                    ex, prompt_template, completion_template
+                )
             )
     elif isinstance(dataset, Dataset):
         dataset = dataset.map(
-            lambda ex: reformat_dynamic(ex, prompt_template, completion_template)
+            lambda ex: reformat_to_messages(ex, prompt_template, completion_template)
         )
-    else:
-        raise TypeError("Input must be a Hugging Face Dataset or DatasetDict.")
     return dataset
+
+
+def _tokenize_dataset(dataset, tokenizer, max_seq_length):
+    """Tokenize a dataset with messages column using the tokenizer's chat template.
+
+    Returns a tokenized dataset with input_ids, attention_mask, and labels.
+    """
+
+    def tokenize_fn(example):
+        text = tokenizer.apply_chat_template(
+            example["messages"], tokenize=False, add_generation_prompt=False
+        )
+        tokenized = tokenizer(
+            text,
+            truncation=True,
+            max_length=max_seq_length,
+            padding=False,
+        )
+        tokenized["labels"] = tokenized["input_ids"].copy()
+        return tokenized
+
+    tokenized = dataset.map(
+        tokenize_fn,
+        remove_columns=dataset.column_names,
+        desc="Tokenizing dataset",
+    )
+    return tokenized
+
+
+def _get_cache_path(
+    data_path,
+    dataset_name,
+    partition_id,
+    split,
+    prompt_template,
+    completion_template,
+    tokenizer_name,
+    max_seq_length,
+):
+    """Generate a unique disk cache path for the tokenized dataset."""
+    abs_data_path = os.path.abspath(data_path)
+    cache_dir = os.path.join(abs_data_path, "cache")
+    os.makedirs(cache_dir, exist_ok=True)
+
+    config_str = f"{dataset_name}_{partition_id}_{split}_{prompt_template}_{completion_template}_{tokenizer_name}_{max_seq_length}"
+    config_hash = hashlib.md5(config_str.encode()).hexdigest()
+
+    return os.path.join(cache_dir, f"tokenized_{config_hash}")
 
 
 def load_data(
     partition_id: int,
     num_partitions: int,
     dataset_name: str,
-    prompt_template: str,
-    completion_template: str,
+    prompt_template: str = "",
+    completion_template: str = "",
     split: str = "train",
+    tokenizer=None,
+    max_seq_length: int = 4096,
+    data_path: str = "./data",
 ):
-    """Load partition data."""
+    """Load partition data.
+
+    If tokenizer is provided, the dataset will be tokenized once and cached
+    to avoid repeated tokenization across federated rounds.
+    """
+    global FDS, TOKENIZED_CACHE
+
+    cache_key = (partition_id, split, dataset_name)
+
+    # Return cached tokenized dataset if available in memory
+    if cache_key in TOKENIZED_CACHE:
+        return TOKENIZED_CACHE[cache_key]
+
+    # Check for disk cache if tokenizer is provided
+    cache_path = None
+    if tokenizer is not None:
+        tokenizer_name = getattr(tokenizer, "name_or_path", "unknown")
+        cache_path = _get_cache_path(
+            data_path,
+            dataset_name,
+            partition_id,
+            split,
+            prompt_template,
+            completion_template,
+            tokenizer_name,
+            max_seq_length,
+        )
+        if os.path.exists(cache_path):
+            print(f"Loading tokenized dataset from disk cache: {cache_path}")
+            tokenized_dataset = load_from_disk(cache_path)
+            TOKENIZED_CACHE[cache_key] = tokenized_dataset
+            return tokenized_dataset
+
     # Only initialize `FederatedDataset` once
-    global FDS
     if FDS.get(split) is None:
         partitioner = IidPartitioner(num_partitions=num_partitions)
         FDS[split] = FederatedDataset(
@@ -119,7 +236,16 @@ def load_data(
             partitioners={split: partitioner},
         )
     client_trainset = FDS[split].load_partition(partition_id, split)
-    client_trainset = process_dataset_dynamic(
+    client_trainset = process_dataset(
         client_trainset, prompt_template, completion_template
     )
+
+    # Tokenize and cache if tokenizer provided
+    if tokenizer is not None:
+        client_trainset = _tokenize_dataset(client_trainset, tokenizer, max_seq_length)
+        if cache_path:
+            print(f"Saving tokenized dataset to disk cache: {cache_path}")
+            client_trainset.save_to_disk(cache_path)
+        TOKENIZED_CACHE[cache_key] = client_trainset
+
     return client_trainset

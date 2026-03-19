@@ -1,0 +1,84 @@
+services:
+  blossomtune-server-node:
+    image: docker.io/ethicalabs/blossomtune-llm:rocm71
+    build:
+      context: .
+      dockerfile: Dockerfile.rocm
+    devices:
+      - "/dev/kfd:/dev/kfd"
+      - "/dev/dri:/dev/dri"
+    group_add:
+      - "44"
+      - "992"
+    environment:
+      SUPERLINK: "blossomtune-server-node:9092"
+      NODE_DATA_PATH: "/app/data/"
+      PARTITION_ID: 0
+      NUM_PARTITIONS: 10
+      HSA_OVERRIDE_GFX_VERSION: 11.0.2
+      TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL: 1
+    volumes:
+      - ./results:/app/results
+  blossomtune-client-node-01:
+    image: docker.io/ethicalabs/blossomtune-llm:rocm71
+    build:
+      context: .
+      dockerfile: Dockerfile.rocm
+    devices:
+      - "/dev/kfd:/dev/kfd"
+      - "/dev/dri:/dev/dri"
+    group_add:
+      - "44"
+      - "992"
+    environment:
+      SUPERLINK: "blossomtune-server-node:9092"
+      NODE_DATA_PATH: "/app/data/"
+      PARTITION_ID: 0
+      NUM_PARTITIONS: 10
+      HSA_OVERRIDE_GFX_VERSION: 11.0.2
+      TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL: 1
+    volumes:
+      - ./data:/app/data
+    command: ["supernode"]
+  blossomtune-client-node-02:
+    image: docker.io/ethicalabs/blossomtune-llm:rocm71
+    build:
+      context: .
+      dockerfile: Dockerfile.rocm
+    devices:
+      - "/dev/kfd:/dev/kfd"
+      - "/dev/dri:/dev/dri"
+    group_add:
+      - "44"
+      - "992"
+    environment:
+      SUPERLINK: "blossomtune-server-node:9092"
+      NODE_DATA_PATH: "/app/data/"
+      PARTITION_ID: 3
+      NUM_PARTITIONS: 10
+      HSA_OVERRIDE_GFX_VERSION: 11.0.2
+      TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL: 1
+    volumes:
+      - ./data:/app/data
+    command: ["supernode"]
+  blossomtune-client-node-03:
+    image: docker.io/ethicalabs/blossomtune-llm:rocm71
+    build:
+      context: .
+      dockerfile: Dockerfile.rocm
+    devices:
+      - "/dev/kfd:/dev/kfd"
+      - "/dev/dri:/dev/dri"
+    group_add:
+      - "44"
+      - "992"
+    environment:
+      SUPERLINK: "blossomtune-server-node:9092"
+      NODE_DATA_PATH: "/app/data/"
+      PARTITION_ID: 2
+      NUM_PARTITIONS: 10
+      HSA_OVERRIDE_GFX_VERSION: 11.0.2
+      TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL: 1
+    volumes:
+      - ./data:/app/data
+    command: ["supernode"]

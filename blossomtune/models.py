@@ -57,12 +57,13 @@ def get_model(model_cfg: DictConfig):
     peft_config = LoraConfig(
         r=model_cfg.lora.peft_lora_r,
         lora_alpha=model_cfg.lora.peft_lora_alpha,
-        lora_dropout=0.075,
+        lora_dropout=model_cfg.lora.get("peft_lora_dropout", 0.075),
         task_type="CAUSAL_LM",
         target_modules=[
             m.lower().strip() for m in model_cfg.lora.peft_target_modules.split(",")
         ],
         use_dora=model_cfg.lora.peft_use_dora,
+        use_rslora=model_cfg.lora.get("peft_use_rslora", False),
     )
 
     if model_cfg.gradient_checkpointing:

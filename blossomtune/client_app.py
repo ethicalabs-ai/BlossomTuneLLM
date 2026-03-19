@@ -104,10 +104,20 @@ class SFTClient(FlowerClient):
         # Do local training
         results = trainer.train()
 
+        # Extract mean_token_accuracy from trainer log history
+        mean_token_accuracy = 0.0
+        for log_entry in reversed(trainer.state.log_history):
+            if "mean_token_accuracy" in log_entry:
+                mean_token_accuracy = log_entry["mean_token_accuracy"]
+                break
+
         return (
             get_parameters(self.model),
             len(self.trainset),
-            {"train_loss": results.training_loss},
+            {
+                "train_loss": results.training_loss,
+                "mean_token_accuracy": float(mean_token_accuracy),
+            },
         )
 
     def evaluate(self, parameters, config):

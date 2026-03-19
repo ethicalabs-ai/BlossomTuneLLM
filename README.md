@@ -74,7 +74,7 @@ docker compose exec -it blossomtune-server-node bash
 Then, run the Flower training command with your desired `run-config`:
 
 ```bash
-uv run flwr run . local-deployment --stream --run-config="model.name='HuggingFaceTB/SmolLM2-135M-Instruct' train.training-arguments.per-device-train-batch-size=8 train.training-arguments.bf16=true train.training-arguments.tf32=true num-server-rounds=100"
+uv run flwr run --stream --run-config="model.name='HuggingFaceTB/SmolLM2-135M-Instruct' train.training-arguments.per-device-train-batch-size=4 train.training-arguments.bf16=true num-server-rounds=10"
 ```
 
 This command initiates a federated training run, specifying the model, batch size, mixed-precision training (bf16/tf32), and the number of server rounds.

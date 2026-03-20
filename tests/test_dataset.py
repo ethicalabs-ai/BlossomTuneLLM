@@ -137,3 +137,20 @@ def test_process_dataset_invalid_type():
     """Test passing invalid type raises error."""
     with pytest.raises(TypeError):
         process_dataset("not_a_dataset", "", "")
+
+
+def test_process_dataset_conversations_mapping():
+    """Test that a dataset with conversations column is mapped to messages."""
+    conversations_data = [
+        [
+            {"from": "human", "value": "Hi"},
+            {"from": "gpt", "value": "Hello!"},
+        ]
+    ]
+    dataset = Dataset.from_dict({"conversations": conversations_data})
+    processed = process_dataset(dataset)
+    assert "messages" in processed.column_names
+    assert processed["messages"][0] == [
+        {"role": "user", "content": "Hi"},
+        {"role": "assistant", "content": "Hello!"},
+    ]

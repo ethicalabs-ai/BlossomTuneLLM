@@ -1,7 +1,10 @@
 [project]
 name = "blossomtune"
 version = "1.1.0"
-description = "BlossomTune LLM"
+authors = [
+    { name = "Massimo R. Scamarcia", email = "massimo@ethicalabs.ai" }
+]
+description = "Federated Fine-Tuning Simulation for SLMs using Flower and TRL"
 license = "Apache-2.0"
 dependencies = [
     "flwr[simulation]>=1.27.0",

@@ -148,7 +148,7 @@ INFO :                          (20, 1.3144098730340013)]}
 ```
 
 ## Key Features
-- **AMD ROCm Priority**: Native optimization for ROCm 6.x environments.
+- **AMD ROCm Priority**: Native optimization for ROCm 7.x environments.
 - **Flower App Hub Ready**: Architected for seamless integration into the **[Flower App Hub](https://flower.ai/apps/)**.
 - **Conversational Support**: Native handling of TRL's `messages` format with automated template fallback.
 - **Efficient Caching**: Disk-based tokenization caching in `./data/cache` to eliminate redundant processing.

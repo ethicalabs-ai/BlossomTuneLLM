@@ -7,7 +7,7 @@ authors = [
 description = "Federated Fine-Tuning Simulation for SLMs using Flower and TRL"
 license = "Apache-2.0"
 dependencies = [
-    "flwr[simulation]>=1.27.0",
+    "flwr[simulation]>=1.29.0",
     "scipy==1.16.0",
     "peft>=0.18.0",
     "torch>=2.10.0",
@@ -25,6 +25,7 @@ dependencies = [
     "kernels>=0.12.2",
     "trl>=0.19.1",
     "flwr-datasets>=0.6.0",
+    "slugify>=0.0.1",
 ]
 requires-python = ">=3.12"
 
@@ -111,7 +112,7 @@ serverapp = "blossomtune.server_app:app"
 clientapp = "blossomtune.client_app:app"
 
 [tool.flwr.app.config]
-model.name = "HuggingFaceTB/SmolLM2-135M-Instruct"
+model.name = "ethicalabs/Echo-DSRN-114M-v0.1.1"
 model.quantization = 4
 model.gradient-checkpointing = true
 model.lora.peft-lora-r = 8
@@ -119,8 +120,8 @@ model.lora.peft-lora-alpha = 32
 model.lora.peft-use-dora = true
 model.lora.peft-use-rslora = true
 model.lora.peft-lora-dropout = 0.05
-model.lora.peft-target-modules = "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
-# model.lora.peft-target-modules = "linear_read,linear_gate,linear_memory,linear_pred,mlp_up,mlp_down,qkv_proj,out_proj"
+# model.lora.peft-target-modules = "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+model.lora.peft-target-modules = "mlp_up,mlp_down,qkv_proj,out_proj"
 model.use-adopt = false
 train.save-every-round = 5
 train.learning-rate-max = 2e-4
